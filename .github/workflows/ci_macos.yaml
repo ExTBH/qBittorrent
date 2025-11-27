@@ -21,10 +21,12 @@ jobs:
         libt_version: ["2.0.11", "1.2.20"]
         qbt_gui: ["GUI=ON", "GUI=OFF"]
         qt_version: ["6.9.1"]
+        supported_archs: ["arm64", "x86_64", "universal"]
 
     env:
       boost_path: "${{ github.workspace }}/../boost"
       libtorrent_path: "${{ github.workspace }}/../libtorrent"
+      ARCH: ${{ matrix.supported_archs == 'universal' && 'x86_64;arm64' || matrix.supported_archs }}
 
     steps:
       - name: Checkout repository
@@ -94,6 +96,7 @@ jobs:
           cmake \
             -B build \
             -G "Ninja" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ env.ARCH }}" \  # NEW
             -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_CXX_STANDARD=20 \
@@ -110,6 +113,7 @@ jobs:
           cmake \
             -B build \
             -G "Ninja" \
+            -DCMAKE_OSX_ARCHITECTURES="${{ env.ARCH }}" \  # NEW
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DBOOST_ROOT="${{ env.boost_path }}/lib/cmake" \
@@ -163,5 +167,5 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: qBittorrent-CI_macOS_${{ matrix.qbt_gui }}_libtorrent-${{ matrix.libt_version }}_Qt-${{ matrix.qt_version }}
+          name: qBittorrent-CI_macOS_${{ matrix.supported_archs }}_${{ matrix.qbt_gui }}_libtorrent-${{ matrix.libt_version }}_Qt-${{ matrix.qt_version }}
           path: upload
